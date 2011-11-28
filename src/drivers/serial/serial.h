@@ -1,4 +1,4 @@
-/* device.h
+/* serial.h
  * 
  * Copyright (c) 2011 The ottos project.
  *
@@ -17,41 +17,30 @@
  * Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  *
  *
- *  Created on: Nov 10, 2011
+ *  Created on: Nov 19, 2011
  *      Author: Matthias Schmid <ramsondon@gmail.com>
  */
 
-#ifndef DEVICE_H_
-#define DEVICE_H_
+#ifndef SERIAL_H_
+#define SERIAL_H_
 
-#define DEVICE_DRIVER_REGISTER(device_t, driver_t) (devices_create(device_t, driver_t))
+#include <ottos/drivers/driver.h>
+#include <ottos/dev/device.h>
 
+int serial_open(device_t dev);
+int serial_close(device_t dev);
+int serial_read(device_t dev, int count, char* buffer);
+int serial_write(device_t dev, int count, char* buffer);
+int serial_ioctl(device_t dev, ioctl_t msg);
+int serial_create(device_t dev);
 
-typedef int device_t;
+static driver_t omap_serial_driver = {
+  serial_open,
+  serial_close,
+  serial_read,
+  serial_write,
+  serial_ioctl,
+  serial_create
+};
 
-/*
- * Device identifiers
- *
- * WARNING: always check the <ottos/limits.h> for DEVICE_MAX_COUNT when adding
- *          new devices.
- */
-#define DEVICE_INVALID  -1
-
-#define GPTIMER_1       0
-#define GPTIMER_2       1
-#define GPTIMER_3       2
-#define GPTIMER_4       3
-#define GPTIMER_5       4
-#define GPTIMER_6       5
-#define GPTIMER_7       6
-#define GPTIMER_8       7
-#define GPTIMER_9       8
-#define GPTIMER_10      9
-#define GPTIMER_11      10
-#define LED_0           11
-#define LED_1           12
-#define SERIAL_0        13
-
-
-
-#endif /* DEVICE_H_ */
+#endif /* SERIAL_H_ */

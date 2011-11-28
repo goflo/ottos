@@ -22,35 +22,41 @@
  */
 
 #include <ottos/system.h>
+#include <ottos/kernel.h>
+
 
 #include "../../bin/led_test.h"
-#include <ottos/kernel.h>
+#include "../../bin/serial_test.h"
+
 #include "kernel/intc/irq.h"
 #include "kernel/pm/process.h"
 #include "kernel/timer/timer.h"
 #include "dev/devices.h"
+#include "../hal/uart.h"
 
 #include "sd_mmc.h"
 //#include "mmchs.h"
 
-void toggle_led_1() {
-  //printf("Timer 3 fired interrupt... \n");
-  *(volatile unsigned long *)GPIO5_DATAOUT ^= SET_BIT(22);
-}
-
-void toggle_led_2() {
-  //printf("Timer 4 fired interrupt... \n");
-  *(volatile unsigned long *)GPIO5_DATAOUT ^= SET_BIT(21);
-}
-
 void timer_test() {
+  irq_started = FALSE;
+  
+  process_table_init();
+
+  process_create(1, (int)toggle_led1);
+  process_create(1, (int)toggle_led2);
+
+  devices_init();
+
   irq_init();
 
   timer_init();
-  timer_add_handler(toggle_led_1, 5000);
-  timer_add_handler(toggle_led_2, 10000);
+  //timer_add_handler(toggle_led_1, 5000);
+  //timer_add_handler(toggle_led_2, 10000);
+
+  irq_register_context_switch();
 
   irq_enable();
+  kernel_to_user_mode();
 }
 
 void devices_test() {
@@ -62,8 +68,10 @@ void process_test() {
 
   process_table_init();
 
-  process_create(1, (int)toggle_led1);
-  process_create(1, (int)toggle_led2);
+  process_create(1, (int)toggle_led1_yield);
+  process_create(1, (int)toggle_led2_yield);
+
+  devices_init();
 
   // switch to user mode
   kernel_to_user_mode();
@@ -89,10 +97,52 @@ void sdcard_test() {
   //sendCMD5();
 }
 
+void serial_test() {
+
+    irq_started = FALSE;
+
+   process_table_init();
+
+//    process_create(1, (int)serial_test_test_yield);
+//    process_create(1, (int)toggle_led1_yield);
+//    process_create(1, (int)toggle_led2_yield);
+
+
+   process_create(1, (int) led1_on);
+   process_create(1, (int) led1_off);
+   process_create(1, (int) toggle_led1);
+   process_create(1, (int) serial_test_write_1);
+   process_create(1, (int) serial_test_write_2);
+   process_create(1, (int) serial_test_write_3);
+   process_create(1, (int) serial_test_write_4);
+   process_create(1, (int) serial_test_write_5);
+//   process_create(1, (int) serial_test_calculator);
+
+    devices_init();
+
+    irq_init();
+
+    timer_init();
+
+    irq_register_context_switch();
+
+    irq_enable();
+    kernel_to_user_mode();
+//    sys_yield();
+
+//    serial_test_test();
+}
+
+void serial_test_calc() {
+  devices_init();
+  serial_test_calculator();
+}
+
 int main(int argc, char **argv) {
-
-  sdcard_test();
-
+//  process_test();
+//  timer_test();
+  serial_test();
+//  serial_test_calc();
   for(;;);
 
 	return 0;
